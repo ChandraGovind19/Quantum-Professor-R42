@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R42 Quantum Professor</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f2f2f7;
+        }
+        /* nav {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 14px 20px;
+            display: inline-block;
+            font-size: 16px;
+        }
+        nav a:hover {
+            background-color: #575757;
+            border-radius: 4px;
+        } */
+        #chat-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+            max-width: 1000px;
+            height: 80%;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .image-strip {
+            position: relative;
+            top: -20px;
+            left: -20px;
+            width: calc(100% + 40px);
+        }
+
+        .image-strip img {
+            width: 100%;
+        }
+
+        #messages {
+            top: 0;
+            height: calc(100% - 134px);
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            width: calc(100% - 40px);
+            padding: 12px 20px;
+            margin: 5px 0;
+            transition-duration: 0.2s;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        input{
+            width: calc(100%);
+            padding: 12px 48px 12px 20px;
+            margin: 12px 0 0 0;
+            transition-duration: 0.2s;
+            box-sizing: border-box;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+            background-color: #f2f2f7;
+        }
+
+        input:focus-visible {
+            outline: none;
+        }
+
+        #user-items {
+            position: relative;
+        }
+
+        #thinking {
+            height: 53px;
+        }
+
+        .thinking-text {
+          padding-top: 24px;
+          text-align: center;
+        }
+
+        .message.user {
+            text-align: right;
+            font-weight: bold;
+            color: blue;
+        }
+        .message.assistant {
+            text-align: left;
+        }
+        button{
+            position: absolute;
+            top: 20px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background-color: #0a022f;
+            color: white;
+            border: none;
+            transition-duration: 0.1s;
+            font-size: 15px;
+            border-radius: 16px;
+        }
+        button:hover{
+            background-color: rgb(93, 92, 92);
+            color: white;
+        }
+        button:active{
+            background-color: darkgray;
+            color: white
+        }
+
+    </style>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
+</head>
+<body>
+    <!-- <nav>
+        <a href="/">Tuned Chatbot</a>
+        <a href="/untuned">Untuned Chatbot</a>
+    </nav> -->
+    <div id="chat-container">
+        <div class="image-strip">
+          <img src="/static/R42_QP2.jpg">
+        </div>
+        <div id="messages"></div>
+        <div id="user-items">
+            <input type="text" id="message-input" placeholder="Ask me about Quantum Computing" onkeydown="sendMessageIfEnter(event)"/>
+            <button onclick="sendMessage()"><div style="margin-left: -1.5px">&#8674;</div></button>
+        </div>
+        <div id="thinking" style="display: none">
+          <div class="thinking-text">Just a moment, please ...</div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('message-input').focus();
+
+        function sendMessageIfEnter(ev) {
+          if (ev.keyCode == 13) {
+            sendMessage();
+          }
+        }
+
+        function sendMessage() {
+          const messageInput = document.getElementById('message-input');
+          const message = messageInput.value;
+          if (message.trim() === '') return;
+
+          const messagesContainer = document.getElementById('messages');
+          messagesContainer.innerHTML += `<div class="message user">You: ${message}</div>`;
+          messageInput.value = '';
+
+          document.getElementById('user-items').style.display = 'none';
+          document.getElementById('thinking').style.display = 'block';
+
+          fetch('/chat', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                  'message': message,
+              }),
+          })
+          .then(response => response.json())
+          .then(data => {
+              document.getElementById('user-items').style.display = 'block';
+              document.getElementById('thinking').style.display = 'none';
+              messagesContainer.innerHTML += `<div class="message assistant">${data.response}</div>`;
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+              document.getElementById('message-input').focus();
+          })
+          .catch(error => {
+            document.getElementById('user-items').style.display = 'block';
+            document.getElementById('thinking').style.display = 'none';
+            messagesContainer.innerHTML += `<div class="message assistant">Sorry, I'm not able to respond right now due to a service issue.</div>`;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            document.getElementById('message-input').focus();
+          });
+
+        }
+    </script>
+</body>
+</html>
